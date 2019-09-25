@@ -50,7 +50,8 @@ type LoginWithPaperKeyArg struct {
 }
 
 type LogoutArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+	SessionID int  `codec:"sessionID" json:"sessionID"`
+	Force     bool `codec:"force" json:"force"`
 }
 
 type DeprovisionArg struct {
@@ -116,7 +117,7 @@ type LoginInterface interface {
 	// - trying unlocked device keys if available
 	// - prompting for a paper key and using that
 	LoginWithPaperKey(context.Context, LoginWithPaperKeyArg) error
-	Logout(context.Context, int) error
+	Logout(context.Context, LogoutArg) error
 	Deprovision(context.Context, DeprovisionArg) error
 	RecoverAccountFromEmailAddress(context.Context, string) error
 	// Guide the user through possibilities of changing their passphrase.
@@ -217,7 +218,7 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]LogoutArg)(nil), args)
 						return
 					}
-					err = i.Logout(ctx, typedArgs[0].SessionID)
+					err = i.Logout(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -407,8 +408,7 @@ func (c LoginClient) LoginWithPaperKey(ctx context.Context, __arg LoginWithPaper
 	return
 }
 
-func (c LoginClient) Logout(ctx context.Context, sessionID int) (err error) {
-	__arg := LogoutArg{SessionID: sessionID}
+func (c LoginClient) Logout(ctx context.Context, __arg LogoutArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.login.logout", []interface{}{__arg}, nil)
 	return
 }
